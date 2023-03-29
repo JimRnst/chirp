@@ -8,8 +8,10 @@ import type { RouterOutputs } from "~/utils/api";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { LoadingPage } from "~/components/loading";
+import { LoadingPage, LoadingSpinner } from "~/components/loading";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
+// import { toast } from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -20,10 +22,18 @@ const CreatePostWizard = () => {
 
   const ctx = api.useContext()
 
-  const {mutate, isLoading: isPosting} = api.posts.create.useMutation({
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setInput('')
       void ctx.posts.getAll.invalidate()
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content
+      if (errorMessage && errorMessage[0]) {
+        toast.error(errorMessage[0])
+      } else {
+        toast.error('Failed to post! Please try again later.')
+      }
     }
   })
 
@@ -35,7 +45,7 @@ const CreatePostWizard = () => {
     <div className='flex gap-3 w-full'>
       <Image src={user.profileImageUrl} alt="Porfile Image" className='w-16 h-16 rounded-full' width={56} height={56} />
 
-      <input 
+      <input
         placeholder='Type some Emojis!'
         className='bg-transparent grow outline-none'
         type='text'
@@ -43,7 +53,16 @@ const CreatePostWizard = () => {
         onChange={(e) => setInput(e.target.value)}
         disabled={isPosting}
       />
-      <button onClick={() => mutate({content: input})}>Post</button>
+      {input !== '' && !isPosting && (
+        <button onClick={() => mutate({ content: input })}>
+          Post
+        </button>
+      )}
+      {isPosting && (
+        <div className='flex justify-center'>
+          <LoadingSpinner size={20} />
+        </div>
+      )}
     </div>
   )
 }
@@ -69,9 +88,9 @@ const PostView = (props: PostWithUser) => {
 const Feed = () => {
   const { data, isLoading: postsLoading } = api.posts.getAll.useQuery()
 
-  if(postsLoading) return <LoadingPage />
+  if (postsLoading) return <LoadingPage />
 
-  if(!data) return <div>Something went wrong</div>
+  if (!data) return <div>Something went wrong</div>
 
   return (
     <div className='flex flex-col'>
@@ -85,13 +104,13 @@ const Feed = () => {
 
 const Home: NextPage = () => {
 
-  const {isLoaded: userLoaded, isSignedIn} = useUser()
+  const { isLoaded: userLoaded, isSignedIn } = useUser()
 
   //start fetching asap
   api.posts.getAll.useQuery()
 
   //Return empty div if both isen't loaded
-  if(!userLoaded ) return <div />
+  if (!userLoaded) return <div />
 
 
   return (
