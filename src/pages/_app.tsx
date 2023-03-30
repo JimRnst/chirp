@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { type AppType } from "next/app";
 import { ClerkProvider } from '@clerk/nextjs'
 
@@ -8,10 +9,17 @@ import { Toaster } from "react-hot-toast";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <ClerkProvider {...pageProps}>
-      <Toaster position="bottom-center"/>
-      <Component {...pageProps} />
-    </ClerkProvider>
+    <>
+      <Head>
+        <title>Chirp</title>
+        <meta name="description" content="💭" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <ClerkProvider {...pageProps}>
+        <Toaster position="bottom-center" />
+        <Component {...pageProps} />
+      </ClerkProvider>
+    </>
   )
 };
 
