@@ -1,6 +1,11 @@
 import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
+import { PageLayout } from "~/components/layout";
+import Image from "next/image";
+import { LoadingPage } from "~/components/loading";
+import { PostView } from "~/components/postsview";
+import { generateSSGHerlper } from "~/server/helpers/ssgHelper";
 
 const PorfileFeed = (props: { userId: string }) => {
   const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
@@ -50,21 +55,8 @@ const PorfilePage: NextPage<{ username: string }> = ({ username }) => {
   )
 }
 
-import { createProxySSGHelpers } from "@trpc/react-query/ssg"
-import { appRouter } from "~/server/api/root";
-import { prisma } from "~/server/db";
-import SuperJSON from "superjson";
-import { PageLayout } from "~/components/layout";
-import Image from "next/image";
-import { LoadingPage } from "~/components/loading";
-import { PostView } from "~/components/postsview";
-
 export const getStaticProps: GetStaticProps = async (context) => {
-  const ssg = createProxySSGHelpers({
-    router: appRouter,
-    ctx: { prisma, userId: null },
-    transformer: SuperJSON
-  })
+  const ssg = generateSSGHerlper()
 
   const slug = context.params?.slug
 
